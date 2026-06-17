@@ -200,6 +200,9 @@ class TestSort:
         assert a.sort_col == "volume"
         await pilot.press("tab")
         await pilot.pause()
+        assert a.sort_col == "version"
+        await pilot.press("tab")
+        await pilot.pause()
         assert a.sort_col == "priority"
 
     @pytest.mark.asyncio

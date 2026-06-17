@@ -43,6 +43,7 @@ source: ""
 created: "{today}"
 tags: []
 volume: 1
+version: ""
 ---
 
 """
@@ -92,6 +93,7 @@ def load_feedback(feedback_dir: Path) -> list[dict]:
             "created": created_str,
             "tags": meta.get("tags", []),
             "volume": meta.get("volume", 1),
+            "version": meta.get("version", ""),
             "body": post.content,
             "stale": stale,
             "mtime": md_path.stat().st_mtime,
@@ -203,13 +205,14 @@ def filter_items(
     return result
 
 
-SORT_COLUMNS = ["id", "volume", "priority", "status", "category", "title"]
+SORT_COLUMNS = ["id", "volume", "version", "priority", "status", "category", "title"]
 
 
 def sort_items(items: list[dict], column: str, reverse: bool = False) -> list[dict]:
     key_funcs = {
         "id": lambda i: i["id"],
         "volume": lambda i: i["volume"],
+        "version": lambda i: i.get("version") or 0,
         "priority": lambda i: PRIORITY_SORT.get(i["priority"], 99),
         "status": lambda i: STATUS_ORDER.get(i["status"], 99),
         "category": lambda i: i["category"],
@@ -233,6 +236,8 @@ class DetailPane(Static):
             f"  Status:   [green]{item['status']}[/]",
             f"  Volume:   {item['volume']}",
         ]
+        if item.get("version"):
+            lines.append(f"  Version:  {item['version']}")
         if item.get("source"):
             lines.append(f"  Source:   {item['source']}")
         if item.get("tags"):
@@ -328,7 +333,7 @@ class FeedbackApp(App):
     def on_mount(self) -> None:
         table = self.query_one("#table", DataTable)
         table.cursor_type = "row"
-        table.add_columns("#", "Vol", "Pri", "Status", "Category", "Title")
+        table.add_columns("#", "Vol", "Ver", "Pri", "Status", "Category", "Title")
         table.focus()
         self._reload()
 
@@ -359,6 +364,7 @@ class FeedbackApp(App):
             table.add_row(
                 str(item["id"]),
                 str(item["volume"]),
+                str(item["version"]) if item.get("version") else "",
                 item["priority"].upper(),
                 item["status"],
                 item["category"],

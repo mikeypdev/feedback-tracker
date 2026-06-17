@@ -145,6 +145,7 @@ class TestLoadFeedback:
         assert items[0]["priority"] == "medium"
         assert items[0]["status"] == "new"
         assert items[0]["volume"] == 1
+        assert items[0].get("version") == ""
         assert items[0]["body"] == "body text"
 
     def test_sorted_by_folder_name(self, fb_dir: Path):
@@ -325,6 +326,16 @@ class TestSortItems:
     def test_sort_title(self):
         titles = [i["title"] for i in sort_items(self._items(), "title")]
         assert titles == ["Apple", "Mango", "Zebra"]
+
+
+    def test_sort_version(self):
+        items = [
+            {"id": 1, "volume": 5, "version": 3, "priority": "low", "status": "new", "category": "a", "title": "Zebra"},
+            {"id": 2, "volume": 10, "version": 1, "priority": "critical", "status": "triaged", "category": "b", "title": "Apple"},
+            {"id": 3, "volume": 1, "version": 5, "priority": "high", "status": "addressed", "category": "c", "title": "Mango"},
+        ]
+        vers = [i['version'] for i in sort_items(items, 'version')]
+        assert vers == [1, 3, 5]
 
 
 class TestFrontmatterRoundTrip:
