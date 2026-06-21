@@ -298,6 +298,7 @@ class FeedbackApp(App):
         Binding("s", "cycle_status", "Status"),
         Binding("x", "clear_filters", "Clear"),
         Binding("tab", "cycle_sort", "Sort", priority=True),
+        Binding("question_mark", "show_help", "Help", key_display="?"),
     ]
 
     def __init__(self, feedback_dir: Path, **kwargs):
@@ -517,6 +518,9 @@ class FeedbackApp(App):
         self.sort_col = SORT_COLUMNS[next_idx]
         self._apply_filters()
 
+    def action_show_help(self) -> None:
+        self.push_screen(_HelpScreen())
+
     @work(exclusive=True)
     async def action_new_item(self) -> None:
         tmp = tempfile.NamedTemporaryFile(
@@ -632,6 +636,43 @@ class _ConfirmScreen(ModalScreen[bool]):
 
     def action_deny(self) -> None:
         self.dismiss(False)
+
+
+class _HelpScreen(ModalScreen[None]):
+    CSS = """
+    #help-dialog {
+        align: center middle;
+    }
+    #help-box {
+        background: $surface;
+        border: solid $primary;
+        padding: 1 2;
+        width: 72;
+        max-height: 80%;
+    }
+    #help-box Static {
+        margin-bottom: 1;
+    }
+    """
+    BINDINGS = [
+        Binding("question_mark", "dismiss_help", "Close", key_display="?"),
+        Binding("escape", "dismiss_help", "Close"),
+        Binding("q", "dismiss_help", "Close"),
+    ]
+
+    def compose(self) -> ComposeResult:
+        with Vertical(id="help-dialog"):
+            with Vertical(id="help-box"):
+                yield Static("[bold]Categories[/]")
+                yield Static("  " + ", ".join(CATEGORIES))
+                yield Static("[bold]Priorities[/]")
+                yield Static("  " + ", ".join(PRIORITIES))
+                yield Static("[bold]Statuses[/]")
+                yield Static("  " + ", ".join(STATUSES))
+                yield Static("[dim]? / q / esc = close[/]")
+
+    def action_dismiss_help(self) -> None:
+        self.dismiss(None)
 
 
 def main():
