@@ -337,6 +337,17 @@ class TestSortItems:
         vers = [i['version'] for i in sort_items(items, 'version')]
         assert vers == [1, 3, 5]
 
+    def test_sort_version_mixed_types(self):
+        # versions may be missing (""/absent), float (0.7), or quoted string ("0.10")
+        items = [
+            {"id": 1, "version": ""},
+            {"id": 2, "version": "0.10"},
+            {"id": 3, "version": 0.7},
+            {"id": 4},
+        ]
+        ids = [i["id"] for i in sort_items(items, "version")]
+        assert ids == [1, 4, 3, 2]
+
 
 class TestFrontmatterRoundTrip:
     def test_dump_and_reload_preserves_all_fields(self, fb_dir: Path):

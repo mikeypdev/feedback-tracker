@@ -208,11 +208,19 @@ def filter_items(
 SORT_COLUMNS = ["id", "volume", "version", "priority", "status", "category", "title"]
 
 
+def _version_key(value) -> tuple[int, ...]:
+    # "0.10" is a later version than "0.9" — compare per-component, not as float
+    try:
+        return tuple(int(part) for part in str(value or "0").split("."))
+    except ValueError:
+        return (0,)
+
+
 def sort_items(items: list[dict], column: str, reverse: bool = False) -> list[dict]:
     key_funcs = {
         "id": lambda i: i["id"],
         "volume": lambda i: i["volume"],
-        "version": lambda i: i.get("version") or 0,
+        "version": lambda i: _version_key(i.get("version")),
         "priority": lambda i: PRIORITY_SORT.get(i["priority"], 99),
         "status": lambda i: STATUS_ORDER.get(i["status"], 99),
         "category": lambda i: i["category"],
